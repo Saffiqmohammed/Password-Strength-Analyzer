@@ -1,2 +1,13 @@
-# Password-Strength-Analyzer
-A Python-based Password Strength Analyzer that evaluates password security using length, uppercase, lowercase, numbers, and special characters.
+# Password Strength Analyzer
+
+This project analyzes password strength using Python.
+
+## Features
+- Checks password length
+- Detects uppercase/lowercase letters
+- Detects numbers and special characters
+- Provides strength analysis
+
+## Technologies Used
+- Python
+***
