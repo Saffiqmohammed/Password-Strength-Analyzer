@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CIPHER — Password Strength Analyzer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="loader-logo">CIPHER</div>
+      <div class="loader-sub">SECURITY ANALYSIS SYSTEM v2.4.1</div>
+      <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+      <div class="loader-lines" id="loaderLines"></div>
+    </div>
+  </div>
+
+  <!-- PARTICLE CANVAS -->
+  <canvas id="particles"></canvas>
+
+  <!-- SCANLINE OVERLAY -->
+  <div class="scanlines"></div>
+
+  <!-- MAIN APP -->
+  <div id="app" class="hidden">
+
+    <!-- HEADER -->
+    <header>
+      <div class="header-left">
+        <div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <div class="logo-text">CIPHER</div>
+          <div class="logo-sub">Password Intelligence Platform</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-dot"></div>
+        <span class="status-label">SYSTEM ONLINE</span>
+        <div class="header-time" id="headerTime"></div>
+      </div>
+    </header>
+
+    <!-- STATS ROW -->
+    <section class="stats-row">
+      <div class="stat-card">
+        <i class="fa-solid fa-database stat-icon cyan"></i>
+        <div class="stat-body">
+          <div class="stat-value">10B+</div>
+          <div class="stat-label">Breach Records</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-bolt stat-icon green"></i>
+        <div class="stat-body">
+          <div class="stat-value">10<sup>12</sup></div>
+          <div class="stat-label">Guesses/sec (GPU)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-lock stat-icon yellow"></i>
+        <div class="stat-body">
+          <div class="stat-value">256-bit</div>
+          <div class="stat-label">Max Entropy</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-eye-slash stat-icon red"></i>
+        <div class="stat-body">
+          <div class="stat-value">2.5B</div>
+          <div class="stat-label">Leaked Passwords</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID -->
+    <main class="main-grid">
+
+      <!-- LEFT PANEL: INPUT + STRENGTH -->
+      <section class="panel panel-left">
+        <div class="panel-title"><i class="fa-solid fa-key"></i> Password Analysis</div>
+
+        <!-- INPUT AREA -->
+        <div class="input-group">
+          <div class="input-wrap" id="inputWrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="passwordInput" placeholder="Enter password to analyze..." autocomplete="off" spellcheck="false" />
+            <button class="toggle-vis" id="toggleVis" title="Show/Hide">
+              <i class="fa-solid fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          <div class="input-glow" id="inputGlow"></div>
+        </div>
+
+        <!-- STRENGTH METER -->
+        <div class="strength-section">
+          <div class="strength-header">
+            <span class="strength-label-txt">Strength</span>
+            <span class="strength-name" id="strengthName">—</span>
+          </div>
+          <div class="strength-track">
+            <div class="strength-fill" id="strengthFill"></div>
+            <div class="strength-shimmer"></div>
+          </div>
+          <div class="strength-pips">
+            <span class="pip" id="pip0"></span>
+            <span class="pip" id="pip1"></span>
+            <span class="pip" id="pip2"></span>
+            <span class="pip" id="pip3"></span>
+          </div>
+        </div>
+
+        <!-- METRICS ROW -->
+        <div class="metrics-row">
+          <div class="metric-card" id="metScore">
+            <div class="metric-icon"><i class="fa-solid fa-chart-bar"></i></div>
+            <div class="metric-val" id="scoreVal">0%</div>
+            <div class="metric-lbl">Score</div>
+          </div>
+          <div class="metric-card" id="metEntropy">
+            <div class="metric-icon"><i class="fa-solid fa-wave-square"></i></div>
+            <div class="metric-val" id="entropyVal">0 bits</div>
+            <div class="metric-lbl">Entropy</div>
+          </div>
+          <div class="metric-card" id="metCrack">
+            <div class="metric-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="metric-val" id="crackVal">—</div>
+            <div class="metric-lbl">Crack Time</div>
+          </div>
+          <div class="metric-card" id="metLength">
+            <div class="metric-icon"><i class="fa-solid fa-ruler"></i></div>
+            <div class="metric-val" id="lengthVal">0</div>
+            <div class="metric-lbl">Length</div>
+          </div>
+        </div>
+
+        <!-- BREACH ALERT -->
+        <div class="breach-box" id="breachBox">
+          <i class="fa-solid fa-triangle-exclamation breach-icon" id="breachIcon"></i>
+          <div class="breach-text" id="breachText">Enter a password to check against breach databases.</div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="btn-row">
+          <button class="btn btn-generate" id="btnGenerate">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Strong
+          </button>
+          <button class="btn btn-copy" id="btnCopy">
+            <i class="fa-solid fa-copy"></i> Copy
+          </button>
+        </div>
+        <div class="copy-toast" id="copyToast">Copied to clipboard!</div>
+      </section>
+
+      <!-- RIGHT PANEL: RULES + TERMINAL -->
+      <section class="panel panel-right">
+
+        <!-- RULE CHECKS -->
+        <div class="panel-title"><i class="fa-solid fa-list-check"></i> Security Rules</div>
+        <div class="rules-list" id="rulesList">
+          <div class="rule-item" id="rule-length">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Minimum 8 characters</div>
+          </div>
+          <div class="rule-item" id="rule-upper">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Uppercase letters (A–Z)</div>
+          </div>
+          <div class="rule-item" id="rule-lower">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Lowercase letters (a–z)</div>
+          </div>
+          <div class="rule-item" id="rule-number">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Numeric digits (0–9)</div>
+          </div>
+          <div class="rule-item" id="rule-special">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Special characters (!@#$…)</div>
+          </div>
+          <div class="rule-item" id="rule-no-repeat">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">No repeating sequences</div>
+          </div>
+          <div class="rule-item" id="rule-no-common">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">Not a common password</div>
+          </div>
+          <div class="rule-item" id="rule-long">
+            <div class="rule-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="rule-text">12+ characters (recommended)</div>
+          </div>
+        </div>
+
+        <!-- SUGGESTIONS -->
+        <div class="panel-title mt"><i class="fa-solid fa-lightbulb"></i> Live Suggestions</div>
+        <div class="suggestions-box" id="suggestionsBox">
+          <div class="suggestion-item idle">
+            <i class="fa-solid fa-terminal"></i> Awaiting input...
+          </div>
+        </div>
+
+        <!-- TERMINAL -->
+        <div class="panel-title mt"><i class="fa-solid fa-terminal"></i> Security Terminal</div>
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <span class="t-dot red"></span>
+            <span class="t-dot yellow"></span>
+            <span class="t-dot green"></span>
+            <span class="t-title">cipher-analyze — root@security</span>
+          </div>
+          <div class="terminal-body" id="terminalBody">
+            <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">cipher --init</span></div>
+            <div class="t-line t-out">CIPHER Security Engine initialized.</div>
+            <div class="t-line t-out">Loading entropy tables... <span class="t-ok">OK</span></div>
+            <div class="t-line t-out">Loading breach database... <span class="t-ok">OK</span></div>
+            <div class="t-line t-out">Pattern analysis module... <span class="t-ok">OK</span></div>
+            <div class="t-line"><span class="t-prompt">$</span> <span class="t-cursor">█</span></div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- TIPS SECTION -->
+    <section class="tips-section">
+      <div class="tips-title"><i class="fa-solid fa-shield-virus"></i> Security Intelligence</div>
+      <div class="tips-grid">
+        <div class="tip-card">
+          <i class="fa-solid fa-repeat tip-icon cyan"></i>
+          <div class="tip-head">Unique Passwords</div>
+          <div class="tip-body">Use a different password for every account. One breach should never cascade into many.</div>
+        </div>
+        <div class="tip-card">
+          <i class="fa-solid fa-vault tip-icon green"></i>
+          <div class="tip-head">Use a Password Manager</div>
+          <div class="tip-body">Tools like Bitwarden or 1Password store hundreds of unique passwords securely behind one master key.</div>
+        </div>
+        <div class="tip-card">
+          <i class="fa-solid fa-mobile-screen tip-icon yellow"></i>
+          <div class="tip-head">Enable 2FA</div>
+          <div class="tip-body">Two-factor authentication adds a second layer. Even if your password leaks, your account stays safe.</div>
+        </div>
+        <div class="tip-card">
+          <i class="fa-solid fa-arrows-rotate tip-icon red"></i>
+          <div class="tip-head">Rotate Regularly</div>
+          <div class="tip-body">Change passwords every 90 days for sensitive accounts. Especially after any known data breach.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>CIPHER © 2025 — Security Analysis Platform</span>
+      <span>All analysis is performed locally. No data is transmitted.</span>
+    </footer>
+
+  </div><!-- /app -->
+
+  <script src="script.js"></script>
+</body>
+</html>
